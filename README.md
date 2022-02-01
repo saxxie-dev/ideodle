@@ -1,0 +1,2 @@
+# ideodle
+ideographic wordle
