@@ -1,0 +1,1 @@
+export type Eq<A, B> = A | B extends A & B ? true : never
