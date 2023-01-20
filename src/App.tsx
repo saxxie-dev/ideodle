@@ -1,23 +1,21 @@
 import { Component, createMemo, createSignal } from 'solid-js';
-import rawDecompositions from './assets/candidates.json';
 import styles from './App.module.css';
-import { parseIDS } from './compiler/Parser'
+import { IDSMap, normalizeIDS, partialFindChar } from './data';
 
-const decompositions: Record<string, string> = (rawDecompositions as any);
 const App: Component = () => {
   const [val, setVal] = createSignal("");
+  const secret = createMemo(() => {
+    const IDSKeys = Object.keys(IDSMap);
+    return IDSKeys[Math.floor(Math.random() * IDSKeys.length)];
+  })
 
   const displayVal = createMemo(() => {
-    if (decompositions[val()]) {
-      return JSON.stringify(parseIDS(decompositions[val()]));
-    } else {
-      return val();
-    }
+    return JSON.stringify(partialFindChar(secret(), val()));
   }, val());
   return (
     <>
       <div class={styles.App}>
-        yo
+        {secret()}
       </div>
 
 

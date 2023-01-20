@@ -46,7 +46,11 @@ export module IDS {
   }
 
   export const cata = <A>(expr: Expr, f: (e: ExprF<A>) => A): A => {
-    return f(map<ExprF<Expr>, A>(expr, x => cata(x, f)));
+    return f(map<Expr, A>(expr, x => cata(x, f)));
   };
+
+  export const ana = <A>(a: A, f: (a: A) => ExprF<A>): Expr => {
+    return map<A, Expr>(f(a), x => ana(x, f));
+  }
 };
 
