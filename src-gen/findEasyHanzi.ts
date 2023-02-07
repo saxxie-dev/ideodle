@@ -95,7 +95,7 @@ const listNonDecomposable = async () => {
         break;
       case '⿵':
         if (!wis) { return undefined; }
-        if (['冂', '⺆', '𠘨', '门'].indexOf(wrapperChar) === -1) { return undefined; }
+        if (['冂', '⺆', '𠘨', '门', '𰃦'].indexOf(wrapperChar) === -1) { return undefined; }
         break;
       case '⿺':
         if (!wis) { return undefined; }
