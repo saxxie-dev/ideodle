@@ -7,7 +7,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.charMatch {
+  box-shadow: 0px 0px 3px #AAAAAA inset;
+  line-height: 1em;
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+}
+
+.charMatch.match {
+  background-color: yellowgreen;
+}
+
+.charMatch.H {
+  flex-direction: row;
+}
+
+.charMatch.V {
+  flex-direction: column;
 }

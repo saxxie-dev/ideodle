@@ -8,6 +8,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "buildDb": "tsc --outDir ./dist --target es5 --module commonjs && node ./dist/src-gen/cook-hanzi.js",
+    "pruneDB": "tsc --outDir ./dist --target es5 --module commonjs && node ./dist/src-gen/findEasyHanzi.js",
     "tsc": "tsc --showConfig"
   },
   "license": "GPL",
@@ -18,7 +19,7 @@
     "vite-plugin-solid": "^2.2.5"
   },
   "dependencies": {
-    "solid-js": "^1.3.3",
+    "solid-js": "^1.6.9",
     "typescript": "^4.5.5"
   }
 }

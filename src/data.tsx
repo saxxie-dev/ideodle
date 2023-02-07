@@ -20,16 +20,47 @@ export const normalizeIDS = (x: string, normalizer: (s: string) => IDS.Expr): ID
       return expr;
     });
 
-export const partialFindChar = (goal: string, query: string) => {
-  const matching: Set<String> = new Set();
+export const partialFindChar = (goal: string): Set<string> => {
+  const matching: Set<string> = new Set();
   normalizeIDS(goal, (s: string) => {
     matching.add(s);
     return IDSMap[s] ?? s;
   });
-  console.log(matching);
-  return normalizeIDS(query, (s: string) => {
-    if (matching.has(s)) { return "y" + s; }
-    return IDSMap[s] ?? s;
-  });
-
+  return matching;
+  // return [normalizeIDS(query, (s: string) => {
+  //   if (matching.has(s)) { return s; }
+  //   return IDSMap[s] ?? s;
+  // }), matching];
 };
+
+export type IDSHighlight = {
+  type: 'leaf',
+  val: string,
+  match: boolean,
+} | {
+  type: 'node',
+  val: IDS.ExprF<IDSHighlight, IDSHighlight>,
+  match: boolean,
+}
+
+export const highlightIDSMatches = (query: string, matches: Set<string>): IDSHighlight => {
+  if (matches.has(query)) {
+    return { type: 'leaf', val: query, match: true };
+  }
+  const decomposition = IDSMap[query];
+  if (decomposition) {
+    const leafified: IDS.ExprF<IDS.Expr<IDSHighlight>, IDSHighlight> = IDS.mapL(decomposition, x => highlightIDSMatches(x, matches));
+    const collapsed = IDS.cata(leafified, flattenMatches);
+    if (collapsed.match) { return collapsed; }
+  }
+  return { type: 'leaf', val: query, match: false };
+}
+
+const flattenMatches = (e: IDS.ExprF<IDSHighlight, IDSHighlight>): IDSHighlight => {
+  if (!Array.isArray(e)) { return e; }
+  return {
+    type: 'node',
+    val: e,
+    match: e[1].match || e[2]?.match || e?.[3]?.match || false,
+  };
+}

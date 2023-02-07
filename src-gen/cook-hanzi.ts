@@ -1,11 +1,11 @@
-const fs = require('fs/promises');
-const { parseIDS } = require('../src/parser/parser');
+export const fs = require('fs/promises');
+export const { parseIDS } = require('../src/compiler/Parser');
 
 // Last character fully supported by CJK font on my machine
-const CHISESupportLimit = 75160;
+export const CHISESupportLimit = 75160;
 
 // Illegal characters / placeholders that should be filtered out of the DB
-const IllegalCHISECharacters = [
+export const IllegalCHISECharacters = [
   'α',
   'ℓ',
   '①',
@@ -38,36 +38,36 @@ const IllegalCHISECharacters = [
   '？'
 ];
 
-const invalidBabelstoneChunks = [6, 7, 8, 9, 12, 14, 15, 17, 19, 20, 21];
+export const invalidBabelstoneChunks = [6, 7, 8, 9, 12, 14, 15, 17, 19, 20, 21];
 
 
 
 // ------------ Types and data structure ------------
-const LangChars = ['G', 'H', 'J', 'K', 'M', 'P', 'S', 'T', 'B', 'U', 'V', 'X', 'Z', 'UCS2003'] as const;
-type LangChar = typeof LangChars[number];
-type LangCode = LangChar[];
+export const LangChars = ['G', 'H', 'J', 'K', 'M', 'P', 'S', 'T', 'B', 'U', 'V', 'X', 'Z', 'UCS2003'] as const;
+export type LangChar = typeof LangChars[number];
+export type LangCode = LangChar[];
 
 const mergeLangCodes = (c1: LangCode, c2: LangCode): LangCode => {
   if (!c1 || !c2) { return c1 || c2; }
   return [...new Set([...c1, ...c2])];
 }
 
-type CharacterComposition = { composition: string, lang: LangCode };
-type CharacterDictionaryEntry =
+export type CharacterComposition = { composition: string, lang: LangCode };
+export type CharacterDictionaryEntry =
   { char: string, lang: LangCode, valid?: boolean } & // TODO: add homoglyphs, shrinkage
   ({ atomic: false, compositions: CharacterComposition[] } |
   { atomic: true });
-type CharacterDictionary = Record<string, CharacterDictionaryEntry>;
+export type CharacterDictionary = Record<string, CharacterDictionaryEntry>;
 
 
-type IDS = { sequence: string, lang?: LangCode }
-type IDSDecomposition = { type: 'atom', lang?: LangCode } |
+export type IDS = { sequence: string, lang?: LangCode }
+export type IDSDecomposition = { type: 'atom', lang?: LangCode } |
 { type: 'composite', sequences: IDS[] };
 
-type IDSSelection = { char: string, decomposition: IDSDecomposition };
-type IDSMap = { [char: string]: IDSDecomposition };
+export type IDSSelection = { char: string, decomposition: IDSDecomposition };
+export type IDSMap = { [char: string]: IDSDecomposition };
 
-const IDSSelectionsToMap = (selections: IDSSelection[]): IDSMap => {
+export const IDSSelectionsToMap = (selections: IDSSelection[]): IDSMap => {
   const map: IDSMap = {};
   selections.forEach(selection => {
     if (map[selection.char]) { throw `Duplicate character: ${selection.char}` }
@@ -77,11 +77,11 @@ const IDSSelectionsToMap = (selections: IDSSelection[]): IDSMap => {
 };
 
 // ------------ Parsers ------------
-const isValidLangCode = (char: string): char is LangChar => {
+export const isValidLangCode = (char: string): char is LangChar => {
   return (LangChars as Readonly<string[]>).indexOf(char) > -1;
 };
 
-const decomposeBabelstoneIDS = (seqs: string[]): IDSDecomposition => {
+export const decomposeBabelstoneIDS = (seqs: string[]): IDSDecomposition => {
   let parsedSequences: IDS[] = [];
   seqs.forEach(seq => {
     if (seq[0] === '*') { return; } // Line-end comment syntax
@@ -96,13 +96,13 @@ const decomposeBabelstoneIDS = (seqs: string[]): IDSDecomposition => {
   });
 
   if (parsedSequences.length === 0) { throw "No valid sequences provided: " + seqs; }
-  if (parsedSequences.length === 1 && parsedSequences[0].sequence.length === 1) {
+  if (parsedSequences.length === 1 && [...parsedSequences[0].sequence].length === 1) {
     return { type: 'atom', lang: parsedSequences[0].lang };
   }
   return { type: 'composite', sequences: parsedSequences };
 };
 
-const decomposeChiseIDS = (seqs: string[]): IDSDecomposition => {
+export const decomposeChiseIDS = (seqs: string[]): IDSDecomposition => {
   const parsedSequences: IDS[] = seqs.map(seq => {
     const parsedSeq = /^([^\[]*)(?:\[([A-Z]*)\])?$/.exec(seq);
     if (!parsedSeq) { throw "Unparseable sequence: " + seq; }
@@ -113,7 +113,7 @@ const decomposeChiseIDS = (seqs: string[]): IDSDecomposition => {
   })
 
   if (parsedSequences.length === 0) { throw "No valid sequences provided: " + seqs; }
-  if (parsedSequences.length === 1 && parsedSequences[0].sequence.length === 1) {
+  if (parsedSequences.length === 1 && [...parsedSequences[0].sequence].length === 1) {
     return { type: 'atom', lang: parsedSequences[0].lang };
   }
   return { type: 'composite', sequences: parsedSequences };
@@ -121,7 +121,7 @@ const decomposeChiseIDS = (seqs: string[]): IDSDecomposition => {
 
 
 // ----------- Loaders ------------
-const loadChiseSequences = async (options: {
+export const loadChiseSequences = async (options: {
   lastRow: number,
   illegalChars: string[],
 }): Promise<IDSSelection[]> => {
@@ -143,7 +143,7 @@ const loadChiseSequences = async (options: {
   }).filter(ex => options.illegalChars.indexOf(ex.char) === -1);
 };
 
-const loadBabelstoneSequences = async (options: {
+export const loadBabelstoneSequences = async (options: {
   chunksToExclude: number[],
 }): Promise<IDSSelection[]> => {
   const idsFile = await fs.open('./raw/hanzi-babelstone-ids.tsv');
@@ -176,7 +176,7 @@ const loadBabelstoneSequences = async (options: {
     });
 };
 
-const writeCandidateSequences = async (map: Record<string, string>) => {
+export const writeCandidateSequences = async (map: Record<string, string>) => {
   await fs.writeFile('src/assets/candidates.json', JSON.stringify(map));
 };
 
@@ -200,7 +200,7 @@ const writeCandidateSequences = async (map: Record<string, string>) => {
 //   return [atomList, retMap];
 // };
 
-const fuseBabelstoneWithChise = (babelstoneMap: IDSMap, chiseMap: IDSMap): Record<string, string> => {
+export const fuseBabelstoneWithChise = (babelstoneMap: IDSMap, chiseMap: IDSMap): Record<string, string> => {
   const chiseKeys = Object.keys(chiseMap);
   const simpleIDSMap: Record<string, string> = {};
   chiseKeys.forEach(key => {
@@ -229,31 +229,31 @@ const fuseBabelstoneWithChise = (babelstoneMap: IDSMap, chiseMap: IDSMap): Recor
       }
     });
     if (allSeqs.size === 0) { return; }
-    const sortedSeqs = [...allSeqs].sort((s1, s2) => s1.length - s2.length);
+    const sortedSeqs = [...allSeqs].filter(x => [...x].length > 1).sort((s1, s2) => s1.length - s2.length);
     simpleIDSMap[key] = sortedSeqs[0];
   });
   return simpleIDSMap;
 }
 
-const isChiseDecompositionRepresentable = (s: string) => {
+export const isChiseDecompositionRepresentable = (s: string) => {
   for (let c of IllegalCHISECharacters) {
     if (s.indexOf(c) > -1) { return false; }
   }
   return isSequenceDecompositionRepresentable(s);
 }
 
-const isBabelstoneDecompositionRepresentable = (s: string) => {
+export const isBabelstoneDecompositionRepresentable = (s: string) => {
   if (['{', '？', '〾', '↔', '↷', '⊖'].some(x => s.indexOf(x) > -1)) { return false; }
   return isSequenceDecompositionRepresentable(s);
 }
 
-const isSequenceDecompositionRepresentable = (s: string) => {
+export const isSequenceDecompositionRepresentable = (s: string) => {
   // TODO: whitelist some of these, under certain conditions
   if (['⿴', '⿵', '⿶', '⿷', '⿸', '⿹', '⿺', '⿻'].some(x => s.indexOf(x) > -1)) { return false; }
   return true;
 }
 
-const processIdsSequences = async () => {
+export const processIdsSequences = async () => {
   const chiseSequences = await loadChiseSequences({ lastRow: CHISESupportLimit, illegalChars: IllegalCHISECharacters });
   const babelstoneSequences = await loadBabelstoneSequences({
     chunksToExclude: invalidBabelstoneChunks,
@@ -266,4 +266,4 @@ const processIdsSequences = async () => {
   // console.log(babelstoneKeys.filter(x => chiseKeys.indexOf(x) === -1));
 };
 
-processIdsSequences();
+//processIdsSequences();
